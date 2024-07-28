@@ -1,0 +1,89 @@
+<%
+=begin%>
+ <audio src="audio.mpga" controls></audio>
+
+<div class="form-group audio-field" data-controller='audio-recording'>
+  <div class='row'>
+    <div class='col-md-12'>
+      <div class="form-group" >
+        <button data-action="audio-recording#startRecording" data-target="audio-recording.startRecording">Start</button>
+        <button disabled data-action="audio-recording#stopRecording" data-target="audio-recording.stopRecording">Stop</button>
+        <button disabled data-action="audio-recording#pauseRecording" data-target="audio-recording.pauseRecording">Pause</button>
+        <button disabled data-action="audio-recording#resumeRecording" data-target="audio-recording.resumeRecording">Resume</button>
+        <audio data-target="audio-recording.recordedAudio"></audio>
+        <input type="hidden" data-target='audio-recording.audioBlob' value=""
+                name="target_field"
+                id="target_field">
+        <p data-target='audio-recording.timeElapsed'> Time Elapsed: 0 second </p>
+      </div>
+    </div>
+
+
+  </div>
+</div>
+<%
+=end%>
+
+
+<h1>Record a new video</h1>
+
+<button id="start">Start</button>
+<button id="stop">Stop</button>
+<div>
+  <audio hidden="true" id="live" autoplay muted></audio>
+</div>
+<div>
+  <audio hidden="true" id="playback" controls></audio>
+</div>
+<%= form_with url: "audios", method: :post do |form| %>
+  <%= form.text_field :query, hidden: true, id: "blob_field" %>
+  <%= form.submit "Search", hidden: false, id: "btn_search" %>
+<% end %>
+
+<script charset="utf-8">
+  (async () => {
+    const startBtn = document.querySelector('#start');
+    const stopBtn = document.querySelector('#stop');
+    const liveAudio = document.querySelector('#live');
+    const playbackAudio = document.querySelector('#playback');
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    liveAudio.srcObject = stream;
+
+    const recorder = new MediaRecorder(stream);
+    const chunks = [];
+    recorder.ondataavailable = (e) => {
+      chunks.push(e.data);
+    }
+
+    startBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      // Start recording
+      recorder.start();
+    });
+
+    stopBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      // Stop recording
+      recorder.stop();
+
+      setTimeout(() => {
+        var blob = new Blob([chunks[chunks.length -1]], {
+          'type': 'audio/mp3'
+        });
+        var url = window.URL.createObjectURL(chunks[chunks.length -1]);
+        playbackAudio.src = url
+        playbackAudio.hidden = false
+        var reader  = new window.FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = function() {
+            var base64data = reader.result;
+            var savedWAVBlob=base64data
+            document.getElementById("blob_field").value=savedWAVBlob
+            document.getElementById("btn_search").hidden=false
+            console.log(savedWAVBlob );
+        }
+      }, 500);
+    });
+  })();
+</script>

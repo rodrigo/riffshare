@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    tty: true
+    stdin_open: true
+    container_name: riffshare-demo-web
+    ports:
+      - "8080:8080"
+      - "3000:3000"
+    volumes:
+      - .:/rails
+    environment:
+      RAILS_ENV: development
+    depends_on:
+      - db
+  db:
+    container_name: riffshare-demo-db
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: riffshare-demo_development
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'

@@ -1,0 +1,21 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  username: root
+  password: root
+  host: db
+
+development:
+  <<: *default
+  database: riffshare_demo_development
+
+test:
+  <<: *default
+  database: riffshare_demo_test
+
+production:
+  <<: *default
+  database: riffshare_demo_production
+  username: riffshare_demo
+  password: <%= ENV["RIFFSHARE_DEMO_DATABASE_PASSWORD"] %>
